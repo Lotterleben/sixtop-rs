@@ -23,7 +23,9 @@ impl Default for SeqNums {
 }
 
 impl SeqNums {
-    // todo add an init that just returns a default struct? is that possible?
+    pub fn new() -> SeqNums {
+        SeqNums{..Default::default()}
+    }
 
     pub fn add_neighbor(&mut self, neighbor: NeighborID, seqnum: SeqNum) {
         (*self).values.insert(neighbor, seqnum);
@@ -41,7 +43,7 @@ mod tests {
     #[test]
     fn test_add_neighbor() {
         let test_neighbor: NeighborID = 11;
-        let mut test_seqnums = SeqNums{..Default::default()};
+        let mut test_seqnums = SeqNums::new();
         let test_seqnum = 1;
         test_seqnums.add_neighbor(test_neighbor, test_seqnum);
         assert_eq!(*(test_seqnums.values.get(&test_neighbor).unwrap()), test_seqnum);
