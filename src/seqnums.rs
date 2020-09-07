@@ -66,62 +66,58 @@ impl SeqNums {
 mod tests {
     use super::*;
 
+    const TEST_NEIGHBOR: NeighborID = 22;
+    const TEST_SEQNUM: SeqNum = 3;
+
     // TODO more constants less copypasta
 
     #[test]
     fn test_add_neighbor() {
-        let test_neighbor: NeighborID = 11;
         let mut test_seqnums = SeqNums::new();
-        let test_seqnum = 1;
 
         // RUN TEST
-        test_seqnums.add_neighbor(test_neighbor, test_seqnum);
+        test_seqnums.add_neighbor(TEST_NEIGHBOR, TEST_SEQNUM);
 
         // ASSERT POSTCONDITION
-        assert_eq!(*(test_seqnums.values.get(&test_neighbor).unwrap()), test_seqnum);
+        assert_eq!(*(test_seqnums.values.get(&TEST_NEIGHBOR).unwrap()), TEST_SEQNUM);
     }
 
     #[test]
     fn test_get_seqnum() {
-        let test_neighbor: NeighborID = 22;
         let mut test_seqnums = SeqNums::new();
-        let test_seqnum = 2;
-        test_seqnums.add_neighbor(test_neighbor, test_seqnum);
+        test_seqnums.add_neighbor(TEST_NEIGHBOR, TEST_SEQNUM);
 
         // RUN TEST
-        let result = test_seqnums.get_seqnum(test_neighbor);
+        let result = test_seqnums.get_seqnum(TEST_NEIGHBOR);
 
         // ASSERT POSTCONDITION
-        assert_eq!(*result.unwrap(), test_seqnum);
+        assert_eq!(*result.unwrap(), TEST_SEQNUM);
     }
 
     #[test]
     fn test_reset_seqnum() {
-        let test_neighbor: NeighborID = 11;
         let mut test_seqnums = SeqNums::new();
-        let test_seqnum = 1;
-        test_seqnums.add_neighbor(test_neighbor, test_seqnum);
+        test_seqnums.add_neighbor(TEST_NEIGHBOR, TEST_SEQNUM);
 
         // RUN TEST
-        test_seqnums.reset_seqnum(test_neighbor);
+        test_seqnums.reset_seqnum(TEST_NEIGHBOR);
 
         // ASSERT POSTCONDITION
-        let result = test_seqnums.get_seqnum(test_neighbor).unwrap();
+        let result = test_seqnums.get_seqnum(TEST_NEIGHBOR).unwrap();
         assert_eq!(*result, 0);
     }
     #[test]
     fn test_increment_seqnum() {
-        let test_neighbor: NeighborID = 33;
         let mut test_seqnums = SeqNums::new();
-        let test_seqnum = 3;
-        test_seqnums.add_neighbor(test_neighbor, test_seqnum);
+        test_seqnums.add_neighbor(TEST_NEIGHBOR, TEST_SEQNUM);
+        let next_seqnum = TEST_SEQNUM + 1;
 
         // RUN TEST
-        test_seqnums.increment_seqnum(test_neighbor);
+        test_seqnums.increment_seqnum(TEST_NEIGHBOR);
 
         // ASSERT POSTCONDITION
-        let result = test_seqnums.get_seqnum(test_neighbor).unwrap();
-        assert_eq!(*result, 4);
+        let result = test_seqnums.get_seqnum(TEST_NEIGHBOR).unwrap();
+        assert_eq!(*result, next_seqnum);
     }
 
     /*
@@ -130,16 +126,15 @@ mod tests {
      */
     #[test]
     fn test_increment_seqnum_wraparound() {
-        let test_neighbor: NeighborID = 22;
         let mut test_seqnums = SeqNums::new();
-        let test_seqnum = 0xFF;
-        test_seqnums.add_neighbor(test_neighbor, test_seqnum);
+        let max_seqnum = 0xFF;
+        test_seqnums.add_neighbor(TEST_NEIGHBOR, max_seqnum);
 
         // RUN TEST
-        test_seqnums.increment_seqnum(test_neighbor);
+        test_seqnums.increment_seqnum(TEST_NEIGHBOR);
 
         // ASSERT POSTCONDITION
-        let result = test_seqnums.get_seqnum(test_neighbor).unwrap();
+        let result = test_seqnums.get_seqnum(TEST_NEIGHBOR).unwrap();
         assert_eq!(*result, 1);
     }
 }
