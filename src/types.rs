@@ -1,11 +1,12 @@
 #![allow(dead_code)]
 
 #[repr(u8)]
+#[derive(Debug, PartialEq)]
 pub enum MsgType {
-    REQUEST,
-    RESPONSE,
-    CONFIRMATION,
-    Unassigned,
+    REQUEST = 0,
+    RESPONSE = 1,
+    CONFIRMATION = 2,
+    Unassigned = 3,
 }
 
 #[repr(u8)]
@@ -36,6 +37,11 @@ pub enum ReturnCode {
     Unassigned,
 }
 
+//                            +-+-+-+-+-+-+-+-+
+// mask to get/set the T in   |Version| T | R |
+//                            +-+-+-+-+-+-+-+-+
+pub const PREAMBLE_TYPE_MASK: u8 = 0b00001100;
+
 pub const DEFAULT_SFID: u8 = 0; // todo check with std
 pub const SIXTOP_VERSION: u8 = 0;
 
@@ -47,6 +53,7 @@ pub struct Cell {
     pub channel_offset: u16,
 }
 
+#[derive(Debug, PartialEq)]
 pub struct MsgHdr {
     pub msg_type: MsgType,
     pub code: u8, // RequestType for requests, ReturnCode for responses
@@ -69,6 +76,16 @@ pub struct Response {
     pub cell_list: CellList,
 }
 
+impl MsgType {
+    pub fn from_u8(value: u8) -> Result<MsgType, ()> {
+        match value {
+            0 => { Ok(MsgType::REQUEST) }
+            1 => { Ok(MsgType::RESPONSE) }
+            2 => { Ok(MsgType::CONFIRMATION) }
+            _ => { Err(()) }
+        }
+    }
+}
 
 impl MsgHdr {
     pub fn new() -> MsgHdr {

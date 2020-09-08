@@ -1,14 +1,9 @@
 use std::vec::Vec;
 
-use crate::types::{CellList,
+use crate::types::{CellList, PREAMBLE_TYPE_MASK,
                    MsgHdr,
                    Request,
                    Response};
-
-//                        +-+-+-+-+-+-+-+-+
-// mask to set the T in   |Version| T | R |
-//                        +-+-+-+-+-+-+-+-+
-const PREAMBLE_TYPE_MASK: u8 = 0b00001100;
 
 fn serialize_header(msg_hdr: MsgHdr) -> Result<Vec<u8>, ()> {
     let mut bytes = Vec::new();
