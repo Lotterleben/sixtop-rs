@@ -40,6 +40,12 @@ pub const DEFAULT_SFID: u8 = 0; // todo check with std
 pub const SIXTOP_VERSION: u8 = 0;
 
 pub type NeighborID = u8; // todo use actually useful type
+pub type CellList = Vec<Cell>;
+
+pub struct Cell {
+    pub slot_offset: u16,
+    pub channel_offset: u16,
+}
 
 pub struct MsgHdr {
     pub msg_type: MsgType,
@@ -53,7 +59,7 @@ pub struct Msg {
     pub metadata: u16,
     pub cell_options: u8,
     pub num_cells: u8,
-    pub cell_list: u8 // todo
+    pub cell_list: CellList,
 }
 
 impl MsgHdr {
@@ -75,7 +81,7 @@ impl Msg {
             metadata: 0,
             cell_options: 0,
             num_cells: 0,
-            cell_list: 0, // todo
+            cell_list: CellList::new(),
         }
     }
 }
