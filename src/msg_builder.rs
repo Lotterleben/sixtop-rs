@@ -1,12 +1,11 @@
 use std::vec::Vec;
 
-use crate::types::{CellList, Cell,
+use crate::types::{CellList,
                    Msg, MsgHdr};
 
-// mask to set the T in
-// +-+-+-+-+-+-+-+-+
-// |Version| T | R |
-// +-+-+-+-+-+-+-+-+
+//                        +-+-+-+-+-+-+-+-+
+// mask to set the T in   |Version| T | R |
+//                        +-+-+-+-+-+-+-+-+
 const PREAMBLE_TYPE_MASK: u8 = 0b00001100;
 
 fn serialize_header(msg_hdr: MsgHdr) -> Result<Vec<u8>, ()> {
@@ -53,7 +52,7 @@ pub fn serialize_msg(msg: Msg) -> Result<Vec<u8>, ()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::types::{CellList, Cell,
+    use crate::types::{Cell,
                        DEFAULT_SFID,
                        MsgType,
                        RequestType,

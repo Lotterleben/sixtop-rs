@@ -60,6 +60,8 @@ pub struct Msg {
     pub cell_options: u8,
     pub num_cells: u8,
     pub cell_list: CellList,
+    // TODO how do we best add a second celllist for RELOCATE requests?
+    // use an option type?
 }
 
 impl MsgHdr {
@@ -71,7 +73,6 @@ impl MsgHdr {
             seqnum: 0,
         }
     }
-    // style Q: would I impl getters and setters here or just access the struct like normal?
 }
 
 impl Msg {
