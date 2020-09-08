@@ -65,6 +65,17 @@ impl MsgHdr {
             seqnum: 0,
         }
     }
-
     // style Q: would I impl getters and setters here or just access the struct like normal?
+}
+
+impl Msg {
+    pub fn new() -> Msg {
+        Msg {
+            header: MsgHdr::new(),
+            metadata: 0,
+            cell_options: 0,
+            num_cells: 0,
+            cell_list: 0, // todo
+        }
+    }
 }
