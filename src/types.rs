@@ -54,7 +54,7 @@ pub struct MsgHdr {
     pub seqnum: u8,
 }
 
-pub struct Msg {
+pub struct Request {
     pub header: MsgHdr,
     pub metadata: u16,
     pub cell_options: u8,
@@ -63,6 +63,12 @@ pub struct Msg {
     // TODO how do we best add a second celllist for RELOCATE requests?
     // use an option type?
 }
+
+pub struct Response {
+    pub header: MsgHdr,
+    pub cell_list: CellList,
+}
+
 
 impl MsgHdr {
     pub fn new() -> MsgHdr {
@@ -75,13 +81,22 @@ impl MsgHdr {
     }
 }
 
-impl Msg {
-    pub fn new() -> Msg {
-        Msg {
+impl Request {
+    pub fn new() -> Request {
+        Request {
             header: MsgHdr::new(),
             metadata: 0,
             cell_options: 0,
             num_cells: 0,
+            cell_list: CellList::new(),
+        }
+    }
+}
+
+impl Response {
+    pub fn new() -> Response {
+        Response {
+            header: MsgHdr::new(),
             cell_list: CellList::new(),
         }
     }
