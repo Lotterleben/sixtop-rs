@@ -41,16 +41,24 @@ pub const SIXTOP_VERSION: u8 = 0;
 
 pub type NeighborID = u8; // todo use actually useful type
 
-pub struct Msg {
+pub struct MsgHdr {
     pub msg_type: MsgType,
     pub code: u8, // RequestType for requests, ReturnCode for responses
     pub sfid: u8,
     pub seqnum: u8,
 }
 
-impl Msg {
-    pub fn new() -> Msg {
-        Msg {
+pub struct Msg {
+    pub header: MsgHdr,
+    pub metadata: u16,
+    pub cell_options: u8,
+    pub num_cells: u8,
+    pub cell_list: u8 // todo
+}
+
+impl MsgHdr {
+    pub fn new() -> MsgHdr {
+        MsgHdr {
             msg_type: MsgType::Unassigned,
             code: 0,
             sfid: DEFAULT_SFID,
