@@ -1,13 +1,8 @@
 use std::io::Cursor;
-
-use byte_strings::concat_bytes;
-use scroll::IOwrite;
+use std::vec::Vec;
 
 use crate::types::{Msg,
                    MsgHdr};
-
-const HDR_SZ: usize = 4; // in bytes
-const MAX_PAYLOAD_SZ: usize = 128 - HDR_SZ; // in bytes; chosen at random
 
 // mask to set the T in
 // +-+-+-+-+-+-+-+-+
@@ -15,31 +10,31 @@ const MAX_PAYLOAD_SZ: usize = 128 - HDR_SZ; // in bytes; chosen at random
 // +-+-+-+-+-+-+-+-+
 const PREAMBLE_TYPE_MASK: u8 = 0b00001100;
 
-
 // todo useful lifetime
-fn serialize_header(msg_hdr: MsgHdr) -> Result<[u8; HDR_SZ], ()> {
-    let mut bytes = [0; HDR_SZ];
-    let mut cursor = Cursor::new(&mut bytes[..]);
+fn serialize_header(msg_hdr: MsgHdr) -> Result<Vec<u8>, ()> {
+    let mut bytes = Vec::new();
 
     //        +-+-+-+-+-+-+-+-+   where version = SIXTOP_VERSION
     // create |Version| T | R |         T = REQUEST
     //        +-+-+-+-+-+-+-+-+         R = 0b00
     let preamble: u8 = PREAMBLE_TYPE_MASK & ((msg_hdr.msg_type as u8) << 2);
 
-    cursor.iowrite(preamble).unwrap();
-    cursor.iowrite(msg_hdr.code).unwrap();
-    cursor.iowrite(msg_hdr.sfid).unwrap();
-    cursor.iowrite(msg_hdr.seqnum).unwrap();
+    bytes.push(preamble);
+    bytes.push(msg_hdr.code);
+    bytes.push(msg_hdr.sfid);
+    bytes.push(msg_hdr.seqnum);
 
     Ok(bytes)
 }
 
-fn serialize_msg(msg: Msg) {
+fn serialize_msg(msg: Msg) -> Result<Vec<u8>, ()> {
     // TODO do we want to do some sort of coherence check for the msg type and code fields?
-    let header = serialize_header(msg.header).unwrap();
+    let mut header = serialize_header(msg.header).unwrap();
 
-    let mut payload = [0; MAX_PAYLOAD_SZ];
-    let mut cursor = Cursor::new(&mut payload[..]);
+    let payload = Vec::new();
+
+    header.extend_from_slice(&payload);
+    Ok(header)
 }
 
 #[cfg(test)]
@@ -60,11 +55,11 @@ mod tests {
         test_request.seqnum = TEST_SEQNUM;
 
         // RUN TEST
-        let result = serialize_header(test_request);
+        let result = serialize_header(test_request).unwrap();
 
         // ASSERT POSTCONDITION
-        assert_eq!(result,
-                   Ok([0b00000000, RequestType::ADD as u8, DEFAULT_SFID, TEST_SEQNUM]));
+        assert_eq!(result.as_slice(),
+                   [0b00000000, RequestType::ADD as u8, DEFAULT_SFID, TEST_SEQNUM]);
     }
 
     #[test]
@@ -75,11 +70,11 @@ mod tests {
         test_request.seqnum = TEST_SEQNUM;
 
         // RUN TEST
-        let result = serialize_header(test_request);
+        let result = serialize_header(test_request).unwrap();
 
         // ASSERT POSTCONDITION
-        assert_eq!(result,
-                   Ok([0b00000100, ReturnCode::RC_ERR as u8, DEFAULT_SFID, TEST_SEQNUM]));
+        assert_eq!(result.as_slice(),
+                   [0b00000100, ReturnCode::RC_ERR as u8, DEFAULT_SFID, TEST_SEQNUM]);
     }
 }
 
