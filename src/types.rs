@@ -5,7 +5,7 @@
 pub enum MsgType {
     REQUEST = 0,
     RESPONSE = 1,
-    CONFIRMATION = 2,
+    CONFIRMATION = 2, // currently unimplemented
     Unassigned = 3,
 }
 
@@ -48,6 +48,7 @@ pub const SIXTOP_VERSION: u8 = 0;
 pub type NeighborID = u8; // todo use actually useful type
 pub type CellList = Vec<Cell>;
 
+#[derive(Debug, PartialEq)]
 pub struct Cell {
     pub slot_offset: u16,
     pub channel_offset: u16,
@@ -61,6 +62,8 @@ pub struct MsgHdr {
     pub seqnum: u8,
 }
 
+#[derive(Debug, PartialEq)]
+// TODO impl debug for this and the data structures it uses for nicer visualization?
 pub struct Request {
     pub header: MsgHdr,
     pub metadata: u16,
@@ -71,9 +74,42 @@ pub struct Request {
     // use an option type?
 }
 
+#[derive(Debug, PartialEq)]
 pub struct Response {
     pub header: MsgHdr,
     pub cell_list: CellList,
+}
+
+// Meta container for parsing returns
+#[derive(Debug)]
+pub enum SixtopMsg {
+    RequestMsg(Request),
+    ResponseMsg(Response),
+}
+
+pub trait Msg {
+    fn new() -> Self;
+}
+
+impl Msg for Request {
+    fn new() -> Request {
+        Request {
+            header: MsgHdr::new(),
+            metadata: 0,
+            cell_options: 0,
+            num_cells: 0,
+            cell_list: CellList::new(),
+        }
+    }
+}
+
+impl Msg for Response {
+    fn new() -> Response {
+        Response {
+            header: MsgHdr::new(),
+            cell_list: CellList::new(),
+        }
+    }
 }
 
 impl MsgType {
@@ -94,27 +130,6 @@ impl MsgHdr {
             code: 0,
             sfid: DEFAULT_SFID,
             seqnum: 0,
-        }
-    }
-}
-
-impl Request {
-    pub fn new() -> Request {
-        Request {
-            header: MsgHdr::new(),
-            metadata: 0,
-            cell_options: 0,
-            num_cells: 0,
-            cell_list: CellList::new(),
-        }
-    }
-}
-
-impl Response {
-    pub fn new() -> Response {
-        Response {
-            header: MsgHdr::new(),
-            cell_list: CellList::new(),
         }
     }
 }

@@ -1,7 +1,7 @@
-mod seqnums;
-mod types;
-mod msg_builder;
-mod msg_reader;
+pub mod seqnums;
+pub mod types;
+pub mod msg_builder;
+pub mod msg_reader;
 
 #[cfg(test)]
 mod tests {

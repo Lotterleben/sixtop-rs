@@ -5,7 +5,8 @@ use crate::types::{CellList, PREAMBLE_TYPE_MASK,
                    Request,
                    Response};
 
-fn serialize_header(msg_hdr: MsgHdr) -> Result<Vec<u8>, ()> {
+// todo make unpublic
+pub fn serialize_header(msg_hdr: MsgHdr) -> Result<Vec<u8>, ()> {
     let mut bytes = Vec::new();
 
     //        +-+-+-+-+-+-+-+-+   where version = SIXTOP_VERSION = 0
@@ -32,6 +33,7 @@ fn serialize_cell_list(cell_list: CellList) -> Result<Vec<u8>, ()> {
     Ok(bytes)
 }
 
+// TODO could these just be struct impls?
 pub fn serialize_request(request: Request) -> Result<Vec<u8>, ()> {
     // TODO do we want to do some sort of coherence check for the msg type and code fields?
     let mut header = serialize_header(request.header).unwrap();
@@ -59,7 +61,7 @@ mod tests {
     use super::*;
     use crate::types::{Cell,
                        DEFAULT_SFID,
-                       MsgType,
+                       Msg, MsgType,
                        RequestType,
                        ReturnCode};
 
