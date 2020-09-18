@@ -27,7 +27,7 @@ fn handle_client_connection(stream: TcpStream) -> Result<(), io::Error> {
     let msg = deserialize_message(buffer).expect("unable to parse message");
     println!("{:?}", msg);
 
-     Ok(())
+    Ok(())
 }
 
 fn main() -> io::Result<()> {

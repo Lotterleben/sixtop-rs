@@ -5,8 +5,7 @@ use crate::types::{CellList, PREAMBLE_TYPE_MASK,
                    Request,
                    Response};
 
-// todo make unpublic
-pub fn serialize_header(msg_hdr: MsgHdr) -> Result<Vec<u8>, ()> {
+fn serialize_header(msg_hdr: MsgHdr) -> Result<Vec<u8>, ()> {
     let mut bytes = Vec::new();
 
     //        +-+-+-+-+-+-+-+-+   where version = SIXTOP_VERSION = 0
