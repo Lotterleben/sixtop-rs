@@ -2,7 +2,7 @@
 use std::vec::Vec;
 use std::convert::TryInto;
 
-use crate::types::{Cell,
+use crate::types::{Cell, CellList,
                    Msg, MsgHdr, MsgType,
                    SixtopMsg,
                    Request, Response,
@@ -10,7 +10,23 @@ use crate::types::{Cell,
 
 const SIXTOP_HDR_SZ_BYTES: usize = 4;
 
-fn deserialize_request_body(data: Vec<u8>) -> Result<Request, ()> {
+fn deserialize_cell_list(data: Vec<u8>) -> Result<CellList, ()> {
+    // TODO: make this somehow less.. awful
+    let mut cell_list = CellList::new();
+    for (position, _) in data.iter().enumerate() {
+        if (position % 4) == 0 {
+            let this_elem = data.get(position..position+2).unwrap();
+            let next_elem = data.get(position+2..position+4).unwrap();
+            let cell = Cell{ slot_offset: u16::from_le_bytes(this_elem.try_into().unwrap()),
+                                    channel_offset: u16::from_le_bytes(next_elem.try_into().unwrap())};
+            cell_list.push(cell);
+        } // otherwise this is data we've already read in the prev step; skipping
+    }
+
+    Ok(cell_list)
+}
+
+fn deserialize_request_body(mut data: Vec<u8>) -> Result<Request, ()> {
     let mut request = Request::new();
 
     let metadata = data.get(0..2).unwrap();
@@ -18,27 +34,10 @@ fn deserialize_request_body(data: Vec<u8>) -> Result<Request, ()> {
     request.cell_options = *data.get(2).unwrap();
     request.num_cells = *data.get(3).unwrap();
 
-    // todo move into own fn
     let previous_data_sz = 4;
-    let remainder = data.get(previous_data_sz..data.len()).unwrap();
-
-    // todo make this somehow less.. awful
-    for (position, _) in remainder.iter().enumerate() {
-        if (position % 4) == 0 {
-            let this_elem = remainder.get(position..position+2).unwrap();
-            let next_elem = remainder.get(position+2..position+4).unwrap();
-            let cell = Cell{ slot_offset: u16::from_le_bytes(this_elem.try_into().unwrap()),
-                                   channel_offset: u16::from_le_bytes(next_elem.try_into().unwrap())};
-            request.cell_list.push(cell);
-        } // otherwise this is data we've already read in the prev step; skipping
-
-    }
+    request.cell_list = deserialize_cell_list( data.split_off(previous_data_sz) ).unwrap();
 
     Ok(request)
-}
-
-fn deserialize_response_body(data: Vec<u8>) -> Result<Response, ()> {
-    unimplemented!();
 }
 
 fn deserialize_header(data: Vec<u8>) -> Result<MsgHdr, ()> {
@@ -65,8 +64,12 @@ pub fn deserialize_message(mut data: Vec<u8>) -> Result<SixtopMsg, ()>
             Ok(SixtopMsg::RequestMsg(request))
         }
         MsgType::RESPONSE => {
-            let mut response = deserialize_response_body(payload).unwrap();
+            // note: response body only contains a CellList, no need for a dedicated
+            // deserialize_response_body()
+            let mut response = Response::new();
             response.header = msg_hdr;
+            response.cell_list = deserialize_cell_list(payload).unwrap();
+
             Ok(SixtopMsg::ResponseMsg(response))
         }
         _ => { unimplemented!() }
@@ -126,17 +129,22 @@ mod tests {
         let test_msg = vec![0b0000_0100, ReturnCode::RC_ERR_SEQNUM as u8, DEFAULT_SFID,
                                      TEST_SEQNUM, 2, 0, 3, 0, 4, 0, 5, 0];
 
-        let mut ref_msg = Response::new();
-        ref_msg.header.msg_type = MsgType::RESPONSE;
-        ref_msg.header.code = ReturnCode::RC_ERR_SEQNUM as u8;
-        ref_msg.header.seqnum = TEST_SEQNUM;
+        let mut reference_msg = Response::new();
+        reference_msg.header.msg_type = MsgType::RESPONSE;
+        reference_msg.header.code = ReturnCode::RC_ERR_SEQNUM as u8;
+        reference_msg.header.seqnum = TEST_SEQNUM;
+
+        reference_msg.cell_list.push(Cell{slot_offset: 2, channel_offset: 3});
+        reference_msg.cell_list.push(Cell{slot_offset: 4, channel_offset: 5});
 
         let result = deserialize_message(test_msg).unwrap();
         if let SixtopMsg::ResponseMsg(response) = result {
-            assert_eq!(response, ref_msg);
+            assert_eq!(response, reference_msg);
         } else {
             // should have been recognized as a response
             assert_eq!(0, 1);
         }
     }
+
+    // TODO add test for incomplete celllist
 }
