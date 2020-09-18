@@ -1,21 +1,47 @@
 
 use std::vec::Vec;
-use crate::types::{Msg, MsgHdr, MsgType,
+use std::convert::TryInto;
+
+use crate::types::{Cell,
+                   Msg, MsgHdr, MsgType,
                    SixtopMsg,
-                   Request,
+                   Request, Response,
                    PREAMBLE_TYPE_MASK};
 
 const SIXTOP_HDR_SZ_BYTES: usize = 4;
 
 fn deserialize_request_body(data: Vec<u8>) -> Result<Request, ()> {
     let mut request = Request::new();
-    //request.metadata = u16::from_le_bytes((*data).get(0..2).unwrap());
-    // TODO implement
+
+    let metadata = data.get(0..2).unwrap();
+    request.metadata = u16::from_le_bytes(metadata.try_into().unwrap());
+    request.cell_options = *data.get(2).unwrap();
+    request.num_cells = *data.get(3).unwrap();
+
+    // todo move into own fn
+    let previous_data_sz = 4;
+    let remainder = data.get(previous_data_sz..data.len()).unwrap();
+
+    // todo make this somehow less.. awful
+    for (position, _) in remainder.iter().enumerate() {
+        if (position % 4) == 0 {
+            let this_elem = remainder.get(position..position+2).unwrap();
+            let next_elem = remainder.get(position+2..position+4).unwrap();
+            let cell = Cell{ slot_offset: u16::from_le_bytes(this_elem.try_into().unwrap()),
+                                   channel_offset: u16::from_le_bytes(next_elem.try_into().unwrap())};
+            request.cell_list.push(cell);
+        } // otherwise this is data we've already read in the prev step; skipping
+
+    }
+
     Ok(request)
 }
 
-// todo make unpub
-pub fn deserialize_header(data: Vec<u8>) -> Result<MsgHdr, ()> {
+fn deserialize_response_body(data: Vec<u8>) -> Result<Response, ()> {
+    unimplemented!();
+}
+
+fn deserialize_header(data: Vec<u8>) -> Result<MsgHdr, ()> {
     let mut header = MsgHdr::new();
     // todo coherence check for: data length, preamble (version, reserved)...
 
@@ -38,7 +64,11 @@ pub fn deserialize_message(mut data: Vec<u8>) -> Result<SixtopMsg, ()>
             request.header = msg_hdr;
             Ok(SixtopMsg::RequestMsg(request))
         }
-        MsgType::RESPONSE => { unimplemented!() }
+        MsgType::RESPONSE => {
+            let mut response = deserialize_response_body(payload).unwrap();
+            response.header = msg_hdr;
+            Ok(SixtopMsg::ResponseMsg(response))
+        }
         _ => { unimplemented!() }
     }
 }
@@ -46,9 +76,12 @@ pub fn deserialize_message(mut data: Vec<u8>) -> Result<SixtopMsg, ()>
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::types::{DEFAULT_SFID, ReturnCode};
+    use crate::types::{DEFAULT_SFID, RequestType,
+                       ReturnCode,
+                       SixtopMsg, Request, Response};
 
     const TEST_SEQNUM: u8 = 4;
+    const TEST_METADATA: u16 = 0b1111_1111_0000_0000;
 
     #[test]
     fn test_deserialize_response_header() {
@@ -61,5 +94,49 @@ mod tests {
 
         let result = deserialize_header(test_hdr).unwrap();
         assert_eq!(result, ref_msg_hdr);
+    }
+
+    #[test]
+    fn test_deserialize_request() {
+        let test_msg = vec![0b0000_0000, RequestType::ADD as u8, DEFAULT_SFID, TEST_SEQNUM,
+                                     0b0000_0000, 0b1111_1111, 0b0000_0100, 3, 1, 0, 2, 0, 3, 0, 9, 0];
+
+        let mut reference_msg = Request::new();
+        reference_msg.header.msg_type = MsgType::REQUEST;
+        reference_msg.header.code = RequestType::ADD as u8;
+        reference_msg.header.seqnum = TEST_SEQNUM;
+
+        reference_msg.metadata = TEST_METADATA;
+        reference_msg.cell_options = 0b100;
+        reference_msg.num_cells = 3;
+        reference_msg.cell_list.push(Cell{slot_offset: 1, channel_offset: 2});
+        reference_msg.cell_list.push(Cell{slot_offset: 3, channel_offset: 9});
+
+        let result = deserialize_message(test_msg).unwrap();
+        if let SixtopMsg::RequestMsg(request) = result {
+            assert_eq!(request, reference_msg);
+        } else {
+            // should have been recognized as a response
+            assert_eq!(0, 1);
+        }
+    }
+
+    #[test]
+    fn test_deserialize_response() {
+        let test_msg = vec![0b0000_0100, ReturnCode::RC_ERR_SEQNUM as u8, DEFAULT_SFID,
+                                     TEST_SEQNUM, 2, 0, 3, 0, 4, 0, 5, 0];
+
+        let mut ref_msg = Response::new();
+        ref_msg.header.msg_type = MsgType::RESPONSE;
+        ref_msg.header.code = ReturnCode::RC_ERR_SEQNUM as u8;
+        ref_msg.header.seqnum = TEST_SEQNUM;
+
+        let result = deserialize_message(test_msg).unwrap();
+        if let SixtopMsg::ResponseMsg(response) = result {
+            assert_eq!(response, ref_msg);
+        } else {
+            // should have been recognized as a response
+            assert_eq!(0, 1);
+        }
     }
 }
