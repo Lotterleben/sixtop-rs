@@ -125,9 +125,9 @@ impl MsgType {
 }
 
 impl MsgHdr {
-    pub fn new(msgType: MsgType) -> MsgHdr {
+    pub fn new(msg_type: MsgType) -> MsgHdr {
         MsgHdr {
-            msg_type: msgType,
+            msg_type: msg_type,
             code: 0,
             sfid: DEFAULT_SFID,
             seqnum: 0,
