@@ -48,7 +48,7 @@ pub const SIXTOP_VERSION: u8 = 0;
 pub type NeighborID = u8; // todo use actually useful type
 pub type CellList = Vec<Cell>;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub struct Cell {
     pub slot_offset: u16,
     pub channel_offset: u16,
