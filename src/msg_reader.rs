@@ -41,7 +41,7 @@ fn deserialize_request_body(mut data: Vec<u8>) -> Result<Request, ()> {
 }
 
 fn deserialize_header(data: Vec<u8>) -> Result<MsgHdr, ()> {
-    let mut header = MsgHdr::new();
+    let mut header = MsgHdr::new(MsgType::Unassigned);
     // todo coherence check for: data length, preamble (version, reserved)...
 
     let preamble = *data.get(0).unwrap();
@@ -90,8 +90,7 @@ mod tests {
     fn test_deserialize_response_header() {
         let test_hdr = vec![0b0000_0100, ReturnCode::RC_ERR as u8, DEFAULT_SFID, TEST_SEQNUM];
 
-        let mut ref_msg_hdr = MsgHdr::new();
-        ref_msg_hdr.msg_type = MsgType::RESPONSE;
+        let mut ref_msg_hdr = MsgHdr::new(MsgType::RESPONSE);
         ref_msg_hdr.code = ReturnCode::RC_ERR as u8;
         ref_msg_hdr.seqnum = TEST_SEQNUM;
 
@@ -105,7 +104,6 @@ mod tests {
                                      0b0000_0000, 0b1111_1111, 0b0000_0100, 3, 1, 0, 2, 0, 3, 0, 9, 0];
 
         let mut reference_msg = Request::new();
-        reference_msg.header.msg_type = MsgType::REQUEST;
         reference_msg.header.code = RequestType::ADD as u8;
         reference_msg.header.seqnum = TEST_SEQNUM;
 
@@ -130,7 +128,6 @@ mod tests {
                                      TEST_SEQNUM, 2, 0, 3, 0, 4, 0, 5, 0];
 
         let mut reference_msg = Response::new();
-        reference_msg.header.msg_type = MsgType::RESPONSE;
         reference_msg.header.code = ReturnCode::RC_ERR_SEQNUM as u8;
         reference_msg.header.seqnum = TEST_SEQNUM;
 

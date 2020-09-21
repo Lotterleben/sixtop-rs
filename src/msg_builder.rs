@@ -69,8 +69,7 @@ mod tests {
 
     #[test]
     fn test_serialize_request_header() {
-        let mut test_hdr = MsgHdr::new();
-        test_hdr.msg_type = MsgType::REQUEST;
+        let mut test_hdr = MsgHdr::new(MsgType::REQUEST);
         test_hdr.code = RequestType::ADD as u8;
         test_hdr.seqnum = TEST_SEQNUM;
 
@@ -84,8 +83,7 @@ mod tests {
 
     #[test]
     fn test_serialize_response_header() {
-        let mut test_hdr = MsgHdr::new();
-        test_hdr.msg_type = MsgType::RESPONSE;
+        let mut test_hdr = MsgHdr::new(MsgType::RESPONSE);
         test_hdr.code = ReturnCode::RC_ERR as u8;
         test_hdr.seqnum = TEST_SEQNUM;
 
@@ -100,7 +98,6 @@ mod tests {
     #[test]
     fn test_serialize_request() {
         let mut test_request = Request::new();
-        test_request.header.msg_type = MsgType::REQUEST;
         test_request.header.code = RequestType::ADD as u8;
         test_request.header.seqnum = TEST_SEQNUM;
 
@@ -122,7 +119,6 @@ mod tests {
     #[test]
     fn test_serialize_response() {
         let mut test_response = Response::new();
-        test_response.header.msg_type = MsgType::RESPONSE;
         test_response.header.code = ReturnCode::RC_ERR_SEQNUM as u8;
         test_response.header.seqnum = TEST_SEQNUM;
 

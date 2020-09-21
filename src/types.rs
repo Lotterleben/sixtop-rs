@@ -91,10 +91,11 @@ pub trait Msg {
     fn new() -> Self;
 }
 
+// TODO add getters and setterr for req/resp header fields, esp. header.code to avoid type confusion
 impl Msg for Request {
     fn new() -> Request {
         Request {
-            header: MsgHdr::new(),
+            header: MsgHdr::new(MsgType::REQUEST),
             metadata: 0,
             cell_options: 0,
             num_cells: 0,
@@ -106,7 +107,7 @@ impl Msg for Request {
 impl Msg for Response {
     fn new() -> Response {
         Response {
-            header: MsgHdr::new(),
+            header: MsgHdr::new(MsgType::RESPONSE),
             cell_list: CellList::new(),
         }
     }
@@ -124,9 +125,9 @@ impl MsgType {
 }
 
 impl MsgHdr {
-    pub fn new() -> MsgHdr {
+    pub fn new(msgType: MsgType) -> MsgHdr {
         MsgHdr {
-            msg_type: MsgType::Unassigned,
+            msg_type: msgType,
             code: 0,
             sfid: DEFAULT_SFID,
             seqnum: 0,
