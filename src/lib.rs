@@ -3,10 +3,15 @@ pub mod types;
 pub mod msg_builder;
 pub mod msg_reader;
 
+use once_cell::sync::OnceCell;
+
 use crate::types::{Msg, Response, ReturnCode, SixtopMsg};
+use crate::seqnums::SeqNums;
+
+static SEQNUMS: OnceCell<SeqNums> = OnceCell::new();
 
 pub fn init() {
-    unimplemented!()
+   SEQNUMS.set(SeqNums::new()).unwrap();
 }
 
 // dummy handling for now

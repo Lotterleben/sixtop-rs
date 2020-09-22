@@ -8,3 +8,4 @@ edition = "2018"
 
 [dependencies]
 scroll = "0.10"
+once_cell = "1.4.1"

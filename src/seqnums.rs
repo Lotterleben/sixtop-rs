@@ -10,6 +10,7 @@ use crate::types::{NeighborID};
 pub type SeqNum = u8;
 pub const DEFAULT_SEQNUM : SeqNum = 0;
 
+#[derive(Debug)]
 pub struct SeqNums {
     values: HashMap<NeighborID, SeqNum>,
 }
