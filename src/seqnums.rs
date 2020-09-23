@@ -28,6 +28,51 @@ impl SeqNums {
         SeqNums{..Default::default()}
     }
 
+    /// TODO do I ever need this?
+    /// If a SeqNum entry for `neighbor` already exists, return it.
+    /// If it doesn't, create a new entry and return its initial seqnum.
+    pub fn guaranteed_get_seqnum(&mut self, neighbor: NeighborID) -> SeqNum{
+        match (*self).values.get(&neighbor) {
+            None => {
+                self.add_neighbor(neighbor, DEFAULT_SEQNUM);
+                DEFAULT_SEQNUM
+            }
+            Some(seqnum) => {
+                *seqnum
+            }
+        }
+    }
+
+
+    /// When node B receives a 6P Request from node A with SeqNum equal to 0, it checks the stored
+    /// SeqNum for A. If A is a new neighbor, the stored SeqNum in B will be 0. The transaction can
+    /// continue. If the stored SeqNum for A in B is different than 0, a potential inconsistency is
+    /// detected. In this case, B MUST return RC_ERR_SEQNUM with SeqNum=0. The SF of node A MAY
+    /// decide what to do next, as described in Section 3.4.6.2.
+    ///
+    /// returns Ok(<neighbor seqnum>) if `seqnum` is legitimate,
+    ///         Err on seqnum inconsistency
+    pub fn update_seqnum(&mut self, neighbor: NeighborID, seqnum: SeqNum) -> Result<SeqNum, ()> {
+        match self.get_seqnum(neighbor) {
+            Some(known_seqnum) => {
+                match (seqnum, *known_seqnum) {
+                    (0, 0) => { Ok(seqnum) }
+                    (0, _) => {
+                        /* inconsistency detected */
+                        Err(())
+                    }
+                    (new, old) if new > old => { Ok(seqnum) }
+                    _ => { unimplemented!() }
+                }
+            }
+            None => {
+                self.add_neighbor(neighbor, seqnum);
+                Ok(seqnum)
+            }
+        }
+
+    }
+
     pub fn add_neighbor(&mut self, neighbor: NeighborID, seqnum: SeqNum) {
         (*self).values.insert(neighbor, seqnum);
     }
