@@ -7,6 +7,7 @@ use std::net::TcpStream;
 
 use sixtop_rs::msg_builder::serialize_request;
 use sixtop_rs::msg_reader::deserialize_message;
+use sixtop_rs::Sixtop;
 use sixtop_rs::types::{Cell, Msg, Request, RequestType};
 
 const SERVER_ADDR: &str = "127.0.0.1:8080";
@@ -40,6 +41,7 @@ fn build_msg() -> Vec<u8> {
 fn main() {
     let mut stream = TcpStream::connect(SERVER_ADDR).unwrap();
     let mut stream_reader = BufReader::new(stream.try_clone().unwrap());
+    let mut sixtop = Sixtop::new();
 
     // send dummy request
     let request = build_msg();
@@ -54,5 +56,5 @@ fn main() {
     let response = deserialize_message(buffer).expect("unable to parse message");
     println!("received: {:#?}", response);
 
-    let result = sixtop_rs::handle_msg(43, response).unwrap();
+    let result = sixtop.handle_msg(43, response).unwrap();
 }

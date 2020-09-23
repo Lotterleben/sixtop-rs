@@ -8,46 +8,43 @@ use once_cell::sync::OnceCell;
 use crate::seqnums::SeqNums;
 use crate::types::{Msg, NeighborID, Response, ReturnCode, SixtopMsg};
 
-static SEQNUMS: OnceCell<SeqNums> = OnceCell::new();
-
-pub fn init() {
-    SEQNUMS.set(SeqNums::new()).unwrap();
+pub struct Sixtop {
+    seqnums: SeqNums
 }
 
-// dummy handling for now
-// returns an answer to be sent if necessary
-pub fn handle_msg(_sender: NeighborID, msg: SixtopMsg) -> Result<Option<SixtopMsg>, ()> {
-    match msg {
-        SixtopMsg::RequestMsg(_request) => {
-            unimplemented!()
-            // dummy: pick first two cells and accept
-            //let mut response = Response::new();
+impl Sixtop {
+    pub fn new() -> Sixtop {
+        Sixtop { seqnums : SeqNums::new() }
+    }
 
-            //let foo = SEQNUMS.get_mut().unwrap();
-            //let bar = (*foo).update_seqnum(sender, 33);
-            /*
-            match SEQNUMS.get().unwrap().update_seqnum(sender, request.header.seqnum) {
-                Ok(new_seqnum) => {
-                    response.header.code = ReturnCode::RC_SUCCESS as u8;
-                    response.header.seqnum = new_seqnum;
+    pub fn handle_msg(&mut self, sender: NeighborID, msg: SixtopMsg) -> Result<Option<SixtopMsg>, ()> {
+        match msg {
+            SixtopMsg::RequestMsg(request) => {
+                let mut response = Response::new();
 
-                    // DUMMY: just choose the first two cells. obvs missing coherence check etc
-                    for index in 0..request.num_cells {
-                        response.cell_list.push(*request.cell_list.get(index as usize).unwrap());
-                    }
+                match self.seqnums.update_seqnum(sender, request.header.seqnum) {
+                    Ok(new_seqnum) => {
+                        response.header.code = ReturnCode::RC_SUCCESS as u8;
+                        response.header.seqnum = new_seqnum;
 
-                    // TODO this is not the right way to do this: "if node A receives the link-layer
-                    // acknowledgment for its 6P Request, it will increment the SeqNum by exactly 1
-                    // after the 6P Transaction ends."
-                    //SEQNUMS.get().unwrap().increment_seqnum(sender);
+                        // DUMMY: just choose the first two cells. obvs missing coherence check etc.
+                        // Proper pick should be done by the SF.
+                        for index in 0..request.num_cells {
+                            response.cell_list.push(*request.cell_list.get(index as usize).unwrap());
+                        }
+
+                        // TODO this is not the right way to do this: "if node A receives the link-layer
+                        // acknowledgment for its 6P Request, it will increment the SeqNum by exactly 1
+                        // after the 6P Transaction ends."
+                        self.seqnums.increment_seqnum(sender);
+                     }
+                    Err(_) => {unimplemented!()}
                 }
-                Err(_) => { unimplemented!() }
-            }
-            */
 
-            //Ok(Some(SixtopMsg::ResponseMsg(response)))
+                Ok(Some(SixtopMsg::ResponseMsg(response)))
+            }
+            SixtopMsg::ResponseMsg(_response) => unimplemented!(),
         }
-        SixtopMsg::ResponseMsg(_response) => unimplemented!(),
     }
 }
 
