@@ -1,12 +1,9 @@
-
-use std::vec::Vec;
 use std::convert::TryInto;
+use std::vec::Vec;
 
-use crate::types::{Cell, CellList,
-                   Msg, MsgHdr, MsgType,
-                   SixtopMsg,
-                   Request, Response,
-                   PREAMBLE_TYPE_MASK};
+use crate::types::{
+    Cell, CellList, Msg, MsgHdr, MsgType, Request, Response, SixtopMsg, PREAMBLE_TYPE_MASK,
+};
 
 const SIXTOP_HDR_SZ_BYTES: usize = 4;
 
@@ -15,10 +12,12 @@ fn deserialize_cell_list(data: Vec<u8>) -> Result<CellList, ()> {
     let mut cell_list = CellList::new();
     for (position, _) in data.iter().enumerate() {
         if (position % 4) == 0 {
-            let this_elem = data.get(position..position+2).unwrap();
-            let next_elem = data.get(position+2..position+4).unwrap();
-            let cell = Cell{ slot_offset: u16::from_le_bytes(this_elem.try_into().unwrap()),
-                                    channel_offset: u16::from_le_bytes(next_elem.try_into().unwrap())};
+            let this_elem = data.get(position..position + 2).unwrap();
+            let next_elem = data.get(position + 2..position + 4).unwrap();
+            let cell = Cell {
+                slot_offset: u16::from_le_bytes(this_elem.try_into().unwrap()),
+                channel_offset: u16::from_le_bytes(next_elem.try_into().unwrap()),
+            };
             cell_list.push(cell);
         } // otherwise this is data we've already read in the prev step; skipping
     }
@@ -35,7 +34,7 @@ fn deserialize_request_body(mut data: Vec<u8>) -> Result<Request, ()> {
     request.num_cells = *data.get(3).unwrap();
 
     let previous_data_sz = 4;
-    request.cell_list = deserialize_cell_list( data.split_off(previous_data_sz) ).unwrap();
+    request.cell_list = deserialize_cell_list(data.split_off(previous_data_sz)).unwrap();
 
     Ok(request)
 }
@@ -53,8 +52,7 @@ fn deserialize_header(data: Vec<u8>) -> Result<MsgHdr, ()> {
     Ok(header)
 }
 
-pub fn deserialize_message(mut data: Vec<u8>) -> Result<SixtopMsg, ()>
-    {
+pub fn deserialize_message(mut data: Vec<u8>) -> Result<SixtopMsg, ()> {
     let payload = data.split_off(SIXTOP_HDR_SZ_BYTES);
     let msg_hdr = deserialize_header(data).unwrap();
     match msg_hdr.msg_type {
@@ -72,23 +70,26 @@ pub fn deserialize_message(mut data: Vec<u8>) -> Result<SixtopMsg, ()>
 
             Ok(SixtopMsg::ResponseMsg(response))
         }
-        _ => { unimplemented!() }
+        _ => unimplemented!(),
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::types::{DEFAULT_SFID, RequestType,
-                       ReturnCode,
-                       SixtopMsg, Request, Response};
+    use crate::types::{Request, RequestType, Response, ReturnCode, SixtopMsg, DEFAULT_SFID};
 
     const TEST_SEQNUM: u8 = 4;
     const TEST_METADATA: u16 = 0b1111_1111_0000_0000;
 
     #[test]
     fn test_deserialize_response_header() {
-        let test_hdr = vec![0b0000_0100, ReturnCode::RC_ERR as u8, DEFAULT_SFID, TEST_SEQNUM];
+        let test_hdr = vec![
+            0b0000_0100,
+            ReturnCode::RC_ERR as u8,
+            DEFAULT_SFID,
+            TEST_SEQNUM,
+        ];
 
         let mut ref_msg_hdr = MsgHdr::new(MsgType::RESPONSE);
         ref_msg_hdr.code = ReturnCode::RC_ERR as u8;
@@ -100,8 +101,24 @@ mod tests {
 
     #[test]
     fn test_deserialize_request() {
-        let test_msg = vec![0b0000_0000, RequestType::ADD as u8, DEFAULT_SFID, TEST_SEQNUM,
-                                     0b0000_0000, 0b1111_1111, 0b0000_0100, 3, 1, 0, 2, 0, 3, 0, 9, 0];
+        let test_msg = vec![
+            0b0000_0000,
+            RequestType::ADD as u8,
+            DEFAULT_SFID,
+            TEST_SEQNUM,
+            0b0000_0000,
+            0b1111_1111,
+            0b0000_0100,
+            3,
+            1,
+            0,
+            2,
+            0,
+            3,
+            0,
+            9,
+            0,
+        ];
 
         let mut reference_msg = Request::new();
         reference_msg.header.code = RequestType::ADD as u8;
@@ -110,8 +127,14 @@ mod tests {
         reference_msg.metadata = TEST_METADATA;
         reference_msg.cell_options = 0b100;
         reference_msg.num_cells = 3;
-        reference_msg.cell_list.push(Cell{slot_offset: 1, channel_offset: 2});
-        reference_msg.cell_list.push(Cell{slot_offset: 3, channel_offset: 9});
+        reference_msg.cell_list.push(Cell {
+            slot_offset: 1,
+            channel_offset: 2,
+        });
+        reference_msg.cell_list.push(Cell {
+            slot_offset: 3,
+            channel_offset: 9,
+        });
 
         let result = deserialize_message(test_msg).unwrap();
         if let SixtopMsg::RequestMsg(request) = result {
@@ -124,15 +147,33 @@ mod tests {
 
     #[test]
     fn test_deserialize_response() {
-        let test_msg = vec![0b0000_0100, ReturnCode::RC_ERR_SEQNUM as u8, DEFAULT_SFID,
-                                     TEST_SEQNUM, 2, 0, 3, 0, 4, 0, 5, 0];
+        let test_msg = vec![
+            0b0000_0100,
+            ReturnCode::RC_ERR_SEQNUM as u8,
+            DEFAULT_SFID,
+            TEST_SEQNUM,
+            2,
+            0,
+            3,
+            0,
+            4,
+            0,
+            5,
+            0,
+        ];
 
         let mut reference_msg = Response::new();
         reference_msg.header.code = ReturnCode::RC_ERR_SEQNUM as u8;
         reference_msg.header.seqnum = TEST_SEQNUM;
 
-        reference_msg.cell_list.push(Cell{slot_offset: 2, channel_offset: 3});
-        reference_msg.cell_list.push(Cell{slot_offset: 4, channel_offset: 5});
+        reference_msg.cell_list.push(Cell {
+            slot_offset: 2,
+            channel_offset: 3,
+        });
+        reference_msg.cell_list.push(Cell {
+            slot_offset: 4,
+            channel_offset: 5,
+        });
 
         let result = deserialize_message(test_msg).unwrap();
         if let SixtopMsg::ResponseMsg(response) = result {

@@ -1,9 +1,6 @@
 use std::vec::Vec;
 
-use crate::types::{CellList, PREAMBLE_TYPE_MASK,
-                   MsgHdr,
-                   Request,
-                   Response};
+use crate::types::{CellList, MsgHdr, Request, Response, PREAMBLE_TYPE_MASK};
 
 fn serialize_header(msg_hdr: MsgHdr) -> Result<Vec<u8>, ()> {
     let mut bytes = Vec::new();
@@ -58,11 +55,7 @@ pub fn serialize_response(response: Response) -> Result<Vec<u8>, ()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::types::{Cell,
-                       DEFAULT_SFID,
-                       Msg, MsgType,
-                       RequestType,
-                       ReturnCode};
+    use crate::types::{Cell, Msg, MsgType, RequestType, ReturnCode, DEFAULT_SFID};
 
     const TEST_SEQNUM: u8 = 4;
     const TEST_METADATA: u16 = 0b1111_1111_0000_0000;
@@ -77,8 +70,15 @@ mod tests {
         let result = serialize_header(test_hdr).unwrap();
 
         // ASSERT POSTCONDITION
-        assert_eq!(result.as_slice(),
-                   [0b0000_0000, RequestType::ADD as u8, DEFAULT_SFID, TEST_SEQNUM]);
+        assert_eq!(
+            result.as_slice(),
+            [
+                0b0000_0000,
+                RequestType::ADD as u8,
+                DEFAULT_SFID,
+                TEST_SEQNUM
+            ]
+        );
     }
 
     #[test]
@@ -91,8 +91,15 @@ mod tests {
         let result = serialize_header(test_hdr).unwrap();
 
         // ASSERT POSTCONDITION
-        assert_eq!(result.as_slice(),
-                   [0b0000_0100, ReturnCode::RC_ERR as u8, DEFAULT_SFID, TEST_SEQNUM]);
+        assert_eq!(
+            result.as_slice(),
+            [
+                0b0000_0100,
+                ReturnCode::RC_ERR as u8,
+                DEFAULT_SFID,
+                TEST_SEQNUM
+            ]
+        );
     }
 
     #[test]
@@ -104,16 +111,40 @@ mod tests {
         test_request.metadata = TEST_METADATA;
         test_request.cell_options = 0b100;
         test_request.num_cells = 3;
-        test_request.cell_list.push(Cell{slot_offset: 1, channel_offset: 2});
-        test_request.cell_list.push(Cell{slot_offset: 3, channel_offset: 9});
+        test_request.cell_list.push(Cell {
+            slot_offset: 1,
+            channel_offset: 2,
+        });
+        test_request.cell_list.push(Cell {
+            slot_offset: 3,
+            channel_offset: 9,
+        });
 
         // RUN TEST
         let result = serialize_request(test_request).unwrap();
 
         // ASSERT POSTCONDITION
-        assert_eq!(result.as_slice(),
-                   [0b0000_0000, RequestType::ADD as u8, DEFAULT_SFID, TEST_SEQNUM,
-                    0b0000_0000, 0b1111_1111, 0b0000_0100, 3, 1, 0, 2, 0, 3, 0, 9, 0]);
+        assert_eq!(
+            result.as_slice(),
+            [
+                0b0000_0000,
+                RequestType::ADD as u8,
+                DEFAULT_SFID,
+                TEST_SEQNUM,
+                0b0000_0000,
+                0b1111_1111,
+                0b0000_0100,
+                3,
+                1,
+                0,
+                2,
+                0,
+                3,
+                0,
+                9,
+                0
+            ]
+        );
     }
 
     #[test]
@@ -122,16 +153,35 @@ mod tests {
         test_response.header.code = ReturnCode::RC_ERR_SEQNUM as u8;
         test_response.header.seqnum = TEST_SEQNUM;
 
-        test_response.cell_list.push(Cell{slot_offset: 2, channel_offset: 3});
-        test_response.cell_list.push(Cell{slot_offset: 4, channel_offset: 5});
+        test_response.cell_list.push(Cell {
+            slot_offset: 2,
+            channel_offset: 3,
+        });
+        test_response.cell_list.push(Cell {
+            slot_offset: 4,
+            channel_offset: 5,
+        });
 
         // RUN TEST
         let result = serialize_response(test_response).unwrap();
 
         // ASSERT POSTCONDITION
-        assert_eq!(result.as_slice(),
-                   [0b0000_0100, ReturnCode::RC_ERR_SEQNUM as u8, DEFAULT_SFID, TEST_SEQNUM,
-                    2, 0, 3, 0, 4, 0, 5, 0]);
+        assert_eq!(
+            result.as_slice(),
+            [
+                0b0000_0100,
+                ReturnCode::RC_ERR_SEQNUM as u8,
+                DEFAULT_SFID,
+                TEST_SEQNUM,
+                2,
+                0,
+                3,
+                0,
+                4,
+                0,
+                5,
+                0
+            ]
+        );
     }
 }
-

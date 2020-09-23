@@ -1,14 +1,14 @@
 #![allow(dead_code)]
 
+use crate::types::NeighborID;
 /**
  * Each node remembers the last used SeqNum for each neighbor.
  * That is, a node stores as many SeqNum values as it has neighbors.
  */
 use std::collections::HashMap;
-use crate::types::{NeighborID};
 
 pub type SeqNum = u8;
-pub const DEFAULT_SEQNUM : SeqNum = 0;
+pub const DEFAULT_SEQNUM: SeqNum = 0;
 
 #[derive(Debug)]
 pub struct SeqNums {
@@ -25,24 +25,23 @@ impl Default for SeqNums {
 
 impl SeqNums {
     pub fn new() -> SeqNums {
-        SeqNums{..Default::default()}
+        SeqNums {
+            ..Default::default()
+        }
     }
 
     /// TODO do I ever need this?
     /// If a SeqNum entry for `neighbor` already exists, return it.
     /// If it doesn't, create a new entry and return its initial seqnum.
-    pub fn guaranteed_get_seqnum(&mut self, neighbor: NeighborID) -> SeqNum{
+    pub fn guaranteed_get_seqnum(&mut self, neighbor: NeighborID) -> SeqNum {
         match (*self).values.get(&neighbor) {
             None => {
                 self.add_neighbor(neighbor, DEFAULT_SEQNUM);
                 DEFAULT_SEQNUM
             }
-            Some(seqnum) => {
-                *seqnum
-            }
+            Some(seqnum) => *seqnum,
         }
     }
-
 
     /// When node B receives a 6P Request from node A with SeqNum equal to 0, it checks the stored
     /// SeqNum for A. If A is a new neighbor, the stored SeqNum in B will be 0. The transaction can
@@ -56,13 +55,13 @@ impl SeqNums {
         match self.get_seqnum(neighbor) {
             Some(known_seqnum) => {
                 match (seqnum, *known_seqnum) {
-                    (0, 0) => { Ok(seqnum) }
+                    (0, 0) => Ok(seqnum),
                     (0, _) => {
                         /* inconsistency detected */
                         Err(())
                     }
-                    (new, old) if new > old => { Ok(seqnum) }
-                    _ => { unimplemented!() }
+                    (new, old) if new > old => Ok(seqnum),
+                    _ => unimplemented!(),
                 }
             }
             None => {
@@ -70,7 +69,6 @@ impl SeqNums {
                 Ok(seqnum)
             }
         }
-
     }
 
     pub fn add_neighbor(&mut self, neighbor: NeighborID, seqnum: SeqNum) {
@@ -125,7 +123,10 @@ mod tests {
         test_seqnums.add_neighbor(TEST_NEIGHBOR, TEST_SEQNUM);
 
         // ASSERT POSTCONDITION
-        assert_eq!(*(test_seqnums.values.get(&TEST_NEIGHBOR).unwrap()), TEST_SEQNUM);
+        assert_eq!(
+            *(test_seqnums.values.get(&TEST_NEIGHBOR).unwrap()),
+            TEST_SEQNUM
+        );
     }
 
     #[test]

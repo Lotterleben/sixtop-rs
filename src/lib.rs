@@ -1,22 +1,22 @@
-pub mod seqnums;
-pub mod types;
 pub mod msg_builder;
 pub mod msg_reader;
+pub mod seqnums;
+pub mod types;
 
 use once_cell::sync::OnceCell;
 
-use crate::types::{Msg, NeighborID, Response, ReturnCode, SixtopMsg};
 use crate::seqnums::SeqNums;
+use crate::types::{Msg, NeighborID, Response, ReturnCode, SixtopMsg};
 
 static SEQNUMS: OnceCell<SeqNums> = OnceCell::new();
 
 pub fn init() {
-   SEQNUMS.set(SeqNums::new()).unwrap();
+    SEQNUMS.set(SeqNums::new()).unwrap();
 }
 
 // dummy handling for now
 // returns an answer to be sent if necessary
-pub fn handle_msg(_sender: NeighborID, msg: SixtopMsg) -> Result<Option<SixtopMsg>, ()>{
+pub fn handle_msg(_sender: NeighborID, msg: SixtopMsg) -> Result<Option<SixtopMsg>, ()> {
     match msg {
         SixtopMsg::RequestMsg(_request) => {
             unimplemented!()
@@ -47,7 +47,7 @@ pub fn handle_msg(_sender: NeighborID, msg: SixtopMsg) -> Result<Option<SixtopMs
 
             //Ok(Some(SixtopMsg::ResponseMsg(response)))
         }
-        SixtopMsg::ResponseMsg(_response) => { unimplemented!() }
+        SixtopMsg::ResponseMsg(_response) => unimplemented!(),
     }
 }
 
@@ -55,7 +55,6 @@ pub fn handle_msg(_sender: NeighborID, msg: SixtopMsg) -> Result<Option<SixtopMs
 mod tests {
     #[test]
     fn test_lib() {
-        assert_eq!(0,0);
+        assert_eq!(0, 0);
     }
 }
-

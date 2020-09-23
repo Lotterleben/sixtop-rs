@@ -116,10 +116,10 @@ impl Msg for Response {
 impl MsgType {
     pub fn from_u8(value: u8) -> Result<MsgType, ()> {
         match value {
-            0 => { Ok(MsgType::REQUEST) }
-            1 => { Ok(MsgType::RESPONSE) }
-            2 => { Ok(MsgType::CONFIRMATION) }
-            _ => { Err(()) }
+            0 => Ok(MsgType::REQUEST),
+            1 => Ok(MsgType::RESPONSE),
+            2 => Ok(MsgType::CONFIRMATION),
+            _ => Err(()),
         }
     }
 }

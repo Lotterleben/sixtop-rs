@@ -1,11 +1,11 @@
 // todo: how do I summarize the io imports (I'm assuming if I do `use std::io::{BufRead, BufReader, Write}`,
 // I will overwrite the default Result?)
+use sixtop_rs::msg_builder::serialize_response;
+use sixtop_rs::msg_reader::deserialize_message;
+use sixtop_rs::types::SixtopMsg;
 use std::io;
 use std::io::{BufRead, BufReader, Write};
 use std::net::{TcpListener, TcpStream};
-use sixtop_rs::types::{SixtopMsg};
-use sixtop_rs::msg_reader::{deserialize_message};
-use sixtop_rs::msg_builder::{serialize_response};
 
 const IP_AND_PORT: &str = "127.0.0.1:8080";
 
@@ -29,8 +29,8 @@ fn handle_client_connection(mut stream: TcpStream) -> Result<(), io::Error> {
                 println!("answered: {:#?}", response);
                 let data = serialize_response(response).unwrap();
                 stream.write(data.as_slice())?;
-             },
-            _ => { unimplemented!() }
+            }
+            _ => unimplemented!(),
         }
     }
     Ok(())
