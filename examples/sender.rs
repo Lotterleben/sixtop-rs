@@ -7,8 +7,8 @@ use std::net::TcpStream;
 
 use sixtop_rs::msg_builder::serialize_request;
 use sixtop_rs::msg_reader::deserialize_message;
-use sixtop_rs::Sixtop;
 use sixtop_rs::types::{Cell, Msg, Request, RequestType};
+use sixtop_rs::Sixtop;
 
 const SERVER_ADDR: &str = "127.0.0.1:8080";
 

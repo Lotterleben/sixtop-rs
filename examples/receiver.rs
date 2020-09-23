@@ -12,7 +12,10 @@ const IP_AND_PORT: &str = "127.0.0.1:8080";
 
 const DUMMY_SENDER_ADDR: NeighborID = 77;
 
-fn handle_client_connection(mut stream: TcpStream, sixtop: &mut sixtop_rs::Sixtop) -> Result<(), io::Error> {
+fn handle_client_connection(
+    mut stream: TcpStream,
+    sixtop: &mut sixtop_rs::Sixtop,
+) -> Result<(), io::Error> {
     println!(
         "handling incoming connection from {:?}",
         stream.local_addr().unwrap()
@@ -29,7 +32,6 @@ fn handle_client_connection(mut stream: TcpStream, sixtop: &mut sixtop_rs::Sixto
     if let Some(response) = result {
         match response {
             SixtopMsg::ResponseMsg(response) => {
-                println!("answered: {:#?}", response);
                 let data = serialize_response(response).unwrap();
                 stream.write(data.as_slice())?;
             }

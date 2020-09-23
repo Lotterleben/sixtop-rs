@@ -43,6 +43,8 @@ impl SeqNums {
         }
     }
 
+    /// Compare `seqnum` to the expected (known) seqnum value for this neighbor.
+    ///
     /// When node B receives a 6P Request from node A with SeqNum equal to 0, it checks the stored
     /// SeqNum for A. If A is a new neighbor, the stored SeqNum in B will be 0. The transaction can
     /// continue. If the stored SeqNum for A in B is different than 0, a potential inconsistency is
@@ -51,17 +53,14 @@ impl SeqNums {
     ///
     /// returns Ok(<neighbor seqnum>) if `seqnum` is legitimate,
     ///         Err on seqnum inconsistency
-    pub fn update_seqnum(&mut self, neighbor: NeighborID, seqnum: SeqNum) -> Result<SeqNum, ()> {
+    pub fn verify(&mut self, neighbor: NeighborID, seqnum: SeqNum) -> Result<SeqNum, ()> {
         match self.get_seqnum(neighbor) {
             Some(known_seqnum) => {
                 match (seqnum, *known_seqnum) {
                     (0, 0) => Ok(seqnum),
-                    (0, _) => {
-                        /* inconsistency detected */
-                        Err(())
-                    }
-                    (new, old) if new > old => Ok(seqnum),
-                    _ => unimplemented!(),
+                    (new, old) if new == old => Ok(seqnum),
+                    /* inconsistency detected */
+                    _ => Err(()),
                 }
             }
             None => {
