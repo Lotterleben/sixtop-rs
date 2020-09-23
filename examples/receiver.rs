@@ -3,7 +3,6 @@
 use std::io;
 use std::io::{BufRead, BufReader, Write};
 use std::net::{TcpListener, TcpStream};
-use sixtop_rs::{handle_msg};
 use sixtop_rs::types::{SixtopMsg};
 use sixtop_rs::msg_reader::{deserialize_message};
 use sixtop_rs::msg_builder::{serialize_response};
@@ -23,7 +22,7 @@ fn handle_client_connection(mut stream: TcpStream) -> Result<(), io::Error> {
     let msg = deserialize_message(buffer).expect("unable to parse message");
     println!("received: {:#?}", msg);
 
-    let result = handle_msg(msg).unwrap();
+    let result = sixtop_rs::handle_msg(msg).unwrap();
     if let Some(response) = result {
         match response {
             SixtopMsg::ResponseMsg(response) => {

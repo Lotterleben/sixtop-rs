@@ -47,4 +47,6 @@ fn main() {
     let buffer = stream_reader.fill_buf().unwrap().to_vec();
     let response = deserialize_message(buffer).expect("unable to parse message");
     println!("received: {:#?}", response);
+
+    let result = sixtop_rs::handle_msg(43, response).unwrap();
 }
