@@ -1,5 +1,3 @@
-// todo: how do I summarize the io imports (I'm assuming if I do `use std::io::{BufRead, BufReader, Write}`,
-// I will overwrite the default Result?)
 use sixtop_rs::msg_builder::serialize_response;
 use sixtop_rs::msg_reader::deserialize_message;
 use sixtop_rs::types::{NeighborID, SixtopMsg};

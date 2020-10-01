@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 #[repr(u8)]
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum MsgType {
     REQUEST = 0,
     RESPONSE = 1,
@@ -89,6 +89,30 @@ pub enum SixtopMsg {
 
 pub trait Msg {
     fn new() -> Self;
+    fn serialize(&self) -> Result<Vec<u8>, ()>;
+}
+
+impl CellList {
+    pub fn serialize(cell_list: CellList) -> Result<Vec<u8>, ()> {
+        todo!();
+    }
+}
+
+impl MsgHdr {
+    //        +-+-+-+-+-+-+-+-+   where version = SIXTOP_VERSION = 0
+    // create |Version| T | R |         T = REQUEST
+    //        +-+-+-+-+-+-+-+-+         R = 0b00
+    pub fn serialize(&self) -> Result<Vec<u8>, ()> {
+        let mut bytes = Vec::new();
+        let preamble: u8 = PREAMBLE_TYPE_MASK & ((self.msg_type as u8) << 2);
+
+        bytes.push(preamble);
+        bytes.push(self.code);
+        bytes.push(self.sfid);
+        bytes.push(self.seqnum);
+
+        Ok(bytes)
+    }
 }
 
 // TODO add getters and setterr for req/resp header fields, esp. header.code to avoid type confusion
@@ -102,6 +126,10 @@ impl Msg for Request {
             cell_list: CellList::new(),
         }
     }
+
+    fn serialize(&self) -> Result<Vec<u8>, ()> {
+        todo!();
+    }
 }
 
 impl Msg for Response {
@@ -110,6 +138,10 @@ impl Msg for Response {
             header: MsgHdr::new(MsgType::RESPONSE),
             cell_list: CellList::new(),
         }
+    }
+
+    fn serialize(&self) -> Result<Vec<u8>, ()> {
+        todo!();
     }
 }
 

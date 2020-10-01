@@ -2,22 +2,6 @@ use std::vec::Vec;
 
 use crate::types::{CellList, MsgHdr, Request, Response, PREAMBLE_TYPE_MASK};
 
-fn serialize_header(msg_hdr: MsgHdr) -> Result<Vec<u8>, ()> {
-    let mut bytes = Vec::new();
-
-    //        +-+-+-+-+-+-+-+-+   where version = SIXTOP_VERSION = 0
-    // create |Version| T | R |         T = REQUEST
-    //        +-+-+-+-+-+-+-+-+         R = 0b00
-    let preamble: u8 = PREAMBLE_TYPE_MASK & ((msg_hdr.msg_type as u8) << 2);
-
-    bytes.push(preamble);
-    bytes.push(msg_hdr.code);
-    bytes.push(msg_hdr.sfid);
-    bytes.push(msg_hdr.seqnum);
-
-    Ok(bytes)
-}
-
 fn serialize_cell_list(cell_list: CellList) -> Result<Vec<u8>, ()> {
     let mut bytes = Vec::new();
 
@@ -32,7 +16,7 @@ fn serialize_cell_list(cell_list: CellList) -> Result<Vec<u8>, ()> {
 // TODO could these just be struct impls?
 pub fn serialize_request(request: Request) -> Result<Vec<u8>, ()> {
     // TODO do we want to do some sort of coherence check for the msg type and code fields?
-    let mut header = serialize_header(request.header).unwrap();
+    let mut header = request.header.serialize().unwrap();
 
     let mut payload = Vec::new();
     payload.extend_from_slice(&request.metadata.to_le_bytes());
@@ -46,7 +30,7 @@ pub fn serialize_request(request: Request) -> Result<Vec<u8>, ()> {
 
 pub fn serialize_response(response: Response) -> Result<Vec<u8>, ()> {
     // TODO do we want to do some sort of coherence check for the msg type and code fields?
-    let mut header = serialize_header(response.header).unwrap();
+    let mut header = response.header.serialize().unwrap();
     let payload = serialize_cell_list(response.cell_list).unwrap();
     header.extend_from_slice(&payload);
     Ok(header)
@@ -67,7 +51,7 @@ mod tests {
         test_hdr.seqnum = TEST_SEQNUM;
 
         // RUN TEST
-        let result = serialize_header(test_hdr).unwrap();
+        let result = test_hdr.serialize().unwrap();
 
         // ASSERT POSTCONDITION
         assert_eq!(
@@ -88,7 +72,7 @@ mod tests {
         test_hdr.seqnum = TEST_SEQNUM;
 
         // RUN TEST
-        let result = serialize_header(test_hdr).unwrap();
+        let result = test_hdr.serialize().unwrap();
 
         // ASSERT POSTCONDITION
         assert_eq!(

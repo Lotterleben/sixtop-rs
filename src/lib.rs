@@ -3,8 +3,6 @@ pub mod msg_reader;
 pub mod seqnums;
 pub mod types;
 
-use once_cell::sync::OnceCell;
-
 use crate::seqnums::SeqNums;
 use crate::types::{Msg, NeighborID, Response, ReturnCode, SixtopMsg};
 
