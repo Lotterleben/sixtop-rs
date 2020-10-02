@@ -42,11 +42,15 @@ pub enum ReturnCode {
 //                            +-+-+-+-+-+-+-+-+
 pub const PREAMBLE_TYPE_MASK: u8 = 0b00001100;
 
-pub const DEFAULT_SFID: u8 = 0; // todo check with std
 pub const SIXTOP_VERSION: u8 = 0;
 
 pub type NeighborID = u8; // todo use actually useful type
 pub type CellList = Vec<Cell>;
+
+#[allow(non_camel_case_types)]
+pub type SFID = u8;
+
+pub const DEFAULT_SFID: SFID = 0; // todo check with std
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub struct Cell {
@@ -87,15 +91,14 @@ pub enum SixtopMsg {
     ResponseMsg(Response),
 }
 
-pub trait Msg {
-    fn new() -> Self;
-    fn serialize(&self) -> Result<Vec<u8>, ()>;
+pub trait SchedulingFunction {
+    fn get_sfid() -> SFID;
+    fn pick_cells(cell_list: Vec<Cell>, num_cells: u8) -> Result<Vec<Cell>, ()>;
+    // TODO: how do I let the SF trigger requests?
 }
 
-impl CellList {
-    pub fn serialize(cell_list: CellList) -> Result<Vec<u8>, ()> {
-        todo!();
-    }
+pub trait Msg {
+    fn new() -> Self;
 }
 
 impl MsgHdr {
@@ -126,10 +129,6 @@ impl Msg for Request {
             cell_list: CellList::new(),
         }
     }
-
-    fn serialize(&self) -> Result<Vec<u8>, ()> {
-        todo!();
-    }
 }
 
 impl Msg for Response {
@@ -138,10 +137,6 @@ impl Msg for Response {
             header: MsgHdr::new(MsgType::RESPONSE),
             cell_list: CellList::new(),
         }
-    }
-
-    fn serialize(&self) -> Result<Vec<u8>, ()> {
-        todo!();
     }
 }
 

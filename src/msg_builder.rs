@@ -1,6 +1,6 @@
 use std::vec::Vec;
 
-use crate::types::{CellList, MsgHdr, Request, Response, PREAMBLE_TYPE_MASK};
+use crate::types::{CellList, Request, Response};
 
 fn serialize_cell_list(cell_list: CellList) -> Result<Vec<u8>, ()> {
     let mut bytes = Vec::new();
