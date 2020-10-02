@@ -8,7 +8,7 @@ use crate::types::NeighborID;
 use std::collections::HashMap;
 
 pub type SeqNum = u8;
-pub const DEFAULT_SEQNUM: SeqNum = 0;
+pub const START_SEQNUM: SeqNum = 0;
 
 #[derive(Debug)]
 pub struct SeqNums {
@@ -36,8 +36,8 @@ impl SeqNums {
     pub fn guaranteed_get_seqnum(&mut self, neighbor: NeighborID) -> SeqNum {
         match (*self).values.get(&neighbor) {
             None => {
-                self.add_neighbor(neighbor, DEFAULT_SEQNUM);
-                DEFAULT_SEQNUM
+                self.add_neighbor(neighbor, START_SEQNUM);
+                START_SEQNUM
             }
             Some(seqnum) => *seqnum,
         }

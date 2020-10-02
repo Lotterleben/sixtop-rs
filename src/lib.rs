@@ -3,8 +3,10 @@ pub mod msg_reader;
 pub mod seqnums;
 pub mod types;
 
-use crate::seqnums::SeqNums;
+use crate::seqnums::{SeqNums, START_SEQNUM};
 use crate::types::{Msg, NeighborID, Response, ReturnCode, SixtopMsg};
+
+
 
 pub struct Sixtop {
     seqnums: SeqNums,
@@ -45,7 +47,20 @@ impl Sixtop {
                         // after the 6P Transaction ends."
                         self.seqnums.increment_seqnum(sender);
                     }
-                    Err(_) => unimplemented!(),
+                    Err(_) => {
+                        // inconsistency detected
+                        println!("inconsistency detected");
+                        response.header.code = ReturnCode::RC_ERR_SEQNUM as u8;
+
+                        // as per the instructions on p. 34, but
+                        // not sure if this is correct– p. 30 of RFC8480 contradicts this:
+                        // "In this 6P Response or 6P Confirmation, the SeqNum field MUST be set to
+                        // the value of the sender of the message (0 in the example in Figure 31)."
+                        response.header.seqnum = START_SEQNUM;
+
+                        // TODO notify SF: The SF of node A MAY decide what to do next,
+                        // as described in Section 3.4.6.2.
+                    },
                 }
 
                 Ok(Some(SixtopMsg::ResponseMsg(response)))
